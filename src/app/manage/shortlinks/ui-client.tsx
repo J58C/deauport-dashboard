@@ -5,10 +5,10 @@ import { Skeleton } from "@/components/skeleton";
 import { useToast } from "@/components/toast";
 import { useConfirm } from "@/components/confirm";
 import {
-  createShortlinkAction,
   toggleShortlinkAction,
   deleteShortlinkAction,
 } from "../actions";
+import { StatusBadge } from "@/components/ui";
 
 type ShortItem = {
   id: string;
@@ -20,8 +20,7 @@ type ShortItem = {
   updatedAt: string;
 };
 
-const VISIBLE = 3;
-const CARD_HEIGHT = "h-[150px]";
+const VISIBLE = 6;
 
 export function ShortlinksClient() {
   const [loading, setLoading] = useState(true);
@@ -40,6 +39,8 @@ export function ShortlinksClient() {
       if (envBase) {
         const u = new URL(envBase);
         setBaseOrigin(u.origin);
+      } else if (typeof window !== "undefined") {
+        setBaseOrigin(location.origin);
       }
     } catch {
       if (typeof window !== "undefined") setBaseOrigin(location.origin);
@@ -87,20 +88,9 @@ export function ShortlinksClient() {
   }, [list, q]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / VISIBLE));
-  const pageSafe = Math.min(page, totalPages);
+  const pageSafe = Math.max(1, Math.min(page, totalPages));
   const pageSlice = filtered.slice((pageSafe - 1) * VISIBLE, pageSafe * VISIBLE);
 
-  async function onCreate(form: FormData) {
-    const slug = String(form.get("slug") ?? "").trim();
-    const targetUrl = String(form.get("targetUrl") ?? "").trim();
-    try {
-      await createShortlinkAction({ slug, targetUrl });
-      toast("Shortlink created");
-      await load();
-    } catch (e: any) {
-      toast(e?.message ?? "Failed to create shortlink", "error");
-    }
-  }
   async function onToggle(id: string, enabled: boolean) {
     try {
       await toggleShortlinkAction(id, enabled);
@@ -128,104 +118,96 @@ export function ShortlinksClient() {
   }
 
   return (
-    <div className="relative p-3">
-      <div className="mb-3 flex flex-wrap items-center gap-2">
+    <div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <input
           className="input max-w-xs"
           placeholder="Search slug / URL…"
           value={q}
           onChange={(e) => { setQ(e.target.value); setPage(1); }}
         />
-        <div className="ml-auto text-sm text-subtle">
-          {filtered.length} items · page {pageSafe}/{totalPages}
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-subtle">
+            {filtered.length} items · page {pageSafe}/{totalPages}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              className="btn btn-ghost"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={pageSafe <= 1}
+              aria-label="Previous"
+            >
+              ‹
+            </button>
+            <button
+              className="btn btn-ghost"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={pageSafe >= totalPages}
+              aria-label="Next"
+            >
+              ›
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="min-h-[160px]">
-        {error ? (
-          <div className="rounded-xl border border-amber-600/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-300">
-            {error}
-          </div>
-        ) : loading ? (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: VISIBLE }).map((_, i) => (
-              <div key={i} className={`card ${CARD_HEIGHT}`}>
-                <Skeleton className="h-full" />
-              </div>
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="card flex items-center justify-center py-12 text-center text-subtle">
-            Tidak ada data.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {pageSlice.map((s) => {
-              const shortHref = `${baseOrigin.replace(/\/+$/, "")}/${s.slug}`;
-              return (
-                <div key={s.id} className={`card ${CARD_HEIGHT} flex flex-col justify-between`}>
-                  <div className="min-w-0">
-                    <a
-                      href={shortHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="truncate text-sm font-medium hover:underline"
-                      title={shortHref}
-                    >
-                      {shortHref}
-                    </a>
-                    <a
-                      href={s.targetUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-0.5 block truncate text-xs text-neutral-400 hover:underline"
-                      title={s.targetUrl}
-                    >
-                      {s.targetUrl}
-                    </a>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-neutral-300">{s.hits} hits</span>
-                    <span className="text-subtle">{s.enabled ? "Enabled" : "Disabled"}</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="btn flex-1" onClick={() => onToggle(s.id, !s.enabled)}>
-                      {s.enabled ? "Disable" : "Enable"}
-                    </button>
-                    <button className="btn btn-danger" onClick={() => onDelete(s.id, s.slug)}>
-                      Delete
-                    </button>
-                  </div>
+      {error ? (
+        <div className="rounded-xl border border-amber-600/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-300">
+          {error}
+        </div>
+      ) : loading ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: VISIBLE }).map((_, i) => (
+            <div key={i} className="card h-[160px]"><Skeleton className="h-full" /></div>
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="card flex items-center justify-center py-12 text-center text-subtle">
+          Tidak ada data.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {pageSlice.map((s) => {
+            const shortHref = `${baseOrigin.replace(/\/+$/, "")}/${s.slug}`;
+            return (
+              <div key={s.id} className="card flex h-full flex-col justify-between p-4">
+                <div>
+                  <a
+                    href={shortHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium hover:underline"
+                    title={shortHref}
+                  >
+                    /{s.slug}
+                  </a>
+                  <a
+                    href={s.targetUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-0.5 block truncate text-xs text-neutral-400 hover:underline"
+                    title={s.targetUrl}
+                  >
+                    {s.targetUrl}
+                  </a>
                 </div>
-              );
-            })}
-            {pageSlice.length < VISIBLE &&
-              Array.from({ length: VISIBLE - pageSlice.length }).map((_, i) => (
-                <div key={`ph-${i}`} className={`card ${CARD_HEIGHT} opacity-0 pointer-events-none`} />
-              ))
-            }
-          </div>
-        )}
-      </div>
-
-      <div className="mt-3 flex items-center justify-end gap-2">
-        <button
-          className="btn btn-ghost"
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
-          disabled={pageSafe <= 1}
-          aria-label="Previous"
-        >
-          ‹
-        </button>
-        <button
-          className="btn btn-ghost"
-          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-          disabled={pageSafe >= totalPages}
-          aria-label="Next"
-        >
-          ›
-        </button>
-      </div>
+                <div className="my-3 flex items-center justify-between text-sm">
+                  <span className="text-subtle">{s.hits} hits</span>
+                  <StatusBadge code={s.enabled ? 200 : 503} message={s.enabled ? "Enabled" : "Disabled"} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <button className="btn flex-1" onClick={() => onToggle(s.id, !s.enabled)}>
+                    {s.enabled ? "Disable" : "Enable"}
+                  </button>
+                  <button className="btn btn-danger" onClick={() => onDelete(s.id, s.slug)}>
+                    Delete
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

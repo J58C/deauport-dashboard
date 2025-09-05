@@ -1,64 +1,66 @@
 import { Shell } from "@/components/shell";
 import { H1, Subtle, Card } from "@/components/ui";
 import type { Metadata } from "next";
+import { getAuthed } from "@/lib/session";
 
 export const metadata: Metadata = { title: "About — Deauport" };
 
 export default async function AboutPage() {
+  const authed = await getAuthed();
+
   return (
-    <Shell>
-      <H1>About</H1>
-      <Subtle className="mt-1">Apa itu Deauport dan kenapa dibuat.</Subtle>
+    <Shell authed={authed}>
+      <H1>About Deauport</H1>
+      <Subtle className="mt-1">
+        Sebuah proyek personal untuk monitoring dan manajemen layanan.
+      </Subtle>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         <Card>
-          <div className="text-sm font-medium">Visi</div>
+          <div className="text-sm font-medium">Visi Proyek</div>
           <p className="mt-2 text-sm text-subtle">
-            Deauport adalah personal dashboard untuk mengelola uptime monitoring
-            dan shortlinks secara sederhana, cepat, dan privat. Fokusnya: ringkas,
-            *no-nonsense*, dan nyaman dipakai harian.
+            Deauport adalah personal dashboard yang dirancang untuk memonitor uptime layanan dan mengelola shortlinks dengan cara yang sederhana, cepat, dan privat. Tujuannya adalah menyediakan alat yang ringkas dan fungsional tanpa fitur yang berlebihan.
           </p>
         </Card>
 
         <Card>
-          <div className="text-sm font-medium">Fitur Saat Ini</div>
+          <div className="text-sm font-medium">Fitur Utama</div>
           <ul className="mt-2 list-inside list-disc text-sm text-subtle">
-            <li>Uptime checks dengan interval fleksibel</li>
-            <li>Grafik mini (sparkline) & latest status</li>
-            <li>Shortlinks dengan hit counter</li>
-            <li>Login sederhana (single account)</li>
-            <li>Rate limit & API key di server</li>
+            <li>Uptime monitoring dengan interval fleksibel.</li>
+            <li>Visualisasi data uptime & latensi (Sparkline).</li>
+            <li>Manajemen shortlinks dengan penghitung jumlah klik.</li>
+            <li>Dashboard publik (read-only) dan halaman manajemen privat.</li>
+            <li>Autentikasi admin dengan satu akun untuk keamanan.</li>
           </ul>
         </Card>
 
-        <Card>
-          <div className="text-sm font-medium">Teknologi</div>
-          <ul className="mt-2 list-inside list-disc text-sm text-subtle">
-            <li>Next.js App Router + Tailwind v4 (no root config)</li>
-            <li>Fastify + Prisma di services</li>
-            <li>PostgreSQL/SQLite (opsional sesuai env)</li>
-            <li>Edge-friendly & cache “no-store” untuk data kritis</li>
-          </ul>
-        </Card>
-
-        <Card>
-          <div className="text-sm font-medium">Roadmap Ringkas</div>
-          <ul className="mt-2 list-inside list-disc text-sm text-subtle">
-            <li>Grafik uptime yang lebih kaya (range & compare)</li>
-            <li>Export data (CSV/JSON)</li>
-            <li>Notifikasi (email/webhook) opsional</li>
-            <li>Per-role access (opsional, tetap minimalis)</li>
-          </ul>
+        <Card className="md:col-span-2">
+          <div className="text-sm font-medium">Arsitektur & Teknologi</div>
+          <p className="mt-2 text-sm text-subtle">
+            Proyek ini terdiri dari dua bagian utama yang bekerja bersamaan:
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <h4 className="font-semibold">Frontend (deauport-dashboard)</h4>
+              <ul className="mt-2 list-inside list-disc text-sm text-subtle">
+                <li>Framework: Next.js 15 (App Router)</li>
+                <li>Styling: Tailwind CSS v4</li>
+                <li>Bahasa: TypeScript</li>
+                <li>Fokus: Menampilkan data dari API service dalam antarmuka yang responsif dan interaktif.</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold">Backend (deauport-services)</h4>
+              <ul className="mt-2 list-inside list-disc text-sm text-subtle">
+                <li>Framework: Fastify</li>
+                <li>Database: Prisma ORM (PostgreSQL/SQLite)</li>
+                <li>Bahasa: TypeScript</li>
+                <li>Fokus: Menyediakan REST API, menangani logika bisnis, dan menjalankan background job untuk pinger uptime.</li>
+              </ul>
+            </div>
+          </div>
         </Card>
       </div>
-
-      <Card className="mt-4">
-        <div className="text-sm font-medium">Kontak</div>
-        <p className="mt-2 text-sm text-subtle">
-          Punya ide atau menemukan bug? Boleh kirim masukan via halaman Manage → Shortlinks
-          (buat tautan “feedback”) atau langsung hubungi melalui profil yang kamu biasa pakai.
-        </p>
-      </Card>
     </Shell>
   );
 }

@@ -124,7 +124,7 @@ export default function Navbar({ authed }: { authed?: boolean }) {
                 <div className="border-t border-[var(--border)]" />
 
                 {authed ? (
-                  <form action="/api/auth/logout" method="post" onSubmit={() => setOpen(false)}>
+                  <form action="/api/auth/logout" method="post">
                     <button
                       type="submit"
                       className="block w-full cursor-pointer px-3 py-2 text-left text-sm hover:bg-[var(--surface-3)]"

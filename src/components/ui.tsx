@@ -31,11 +31,12 @@ export function Button({
   return <button className={`${map[variant]} ${className}`} {...rest} />;
 }
 
-export function StatusBadge({ code }: { code: number | null | undefined }) {
+export function StatusBadge({ code, message }: { code: number | null | undefined, message?: string }) {
   const label =
-    code == null ? "No Resp" :
+    message ??
+    (code == null ? "No Resp" :
     code >= 200 && code < 400 ? "OK" :
-    code >= 400 && code < 500 ? "Warn" : "Down";
+    code >= 400 && code < 500 ? "Warn" : "Down");
 
   const cls =
     code == null
@@ -48,7 +49,7 @@ export function StatusBadge({ code }: { code: number | null | undefined }) {
 
   return (
     <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${cls}`}>
-      {label}{code ? <span>· {code}</span> : null}
+      {label}{code && !message ? <span>· {code}</span> : null}
     </span>
   );
 }

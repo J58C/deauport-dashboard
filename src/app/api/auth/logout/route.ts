@@ -1,23 +1,18 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-async function nukeCookie(name: string) {
-  const jar = cookies();
-  (await jar).set(name, "", {
-    path: "/",
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 0,
-    expires: new Date(0),
-  });
-  try { (await jar).delete(name); } catch {}
-}
-
 export async function POST(req: Request) {
-  nukeCookie("deau_sess");
-  const res = NextResponse.redirect(new URL("/", req.url));
-  res.headers.set("Cache-Control", "no-store");
+  (await cookies()).delete("deau_sess");
+
+  const res = NextResponse.redirect(new URL("/", req.url), {
+    status: 302,
+  });
+
+  res.headers.set(
+    "Cache-Control",
+    "no-cache, no-store, max-age=0, must-revalidate"
+  );
+
   return res;
 }
 

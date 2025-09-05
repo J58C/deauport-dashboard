@@ -54,27 +54,33 @@ export default async function Page({
     fetchJSON<SummaryItem[]>(`/api/uptime/summary?hours=${hours}`),
   ]);
 
+  const renderHeader = () => (
+    <div className="flex items-end justify-between">
+      <div>
+        <H1>Dashboard</H1>
+        <Subtle className="mt-1">Ringkasan uptime {hours} jam terakhir.</Subtle>
+      </div>
+      <div className="flex gap-2">
+        {[6, 12, 24].map((opt) => {
+          const active = hours === opt;
+          return (
+            <a
+              key={opt}
+              href={`/?h=${opt}`}
+              className={`btn ${active ? "btn-primary" : "btn-ghost"}`}
+            >
+              {opt}h
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  );
+
   if (!summary || summary.length === 0) {
     return (
       <Shell authed={authed}>
-        <H1>Dashboard</H1>
-        <Subtle className="mt-1">Ringkasan uptime {hours} jam terakhir.</Subtle>
-
-        <div className="mt-4 flex gap-2">
-          {[6, 12, 24].map((opt) => {
-            const active = hours === opt;
-            return (
-              <a
-                key={opt}
-                href={`/?h=${opt}`}
-                className={`btn ${active ? "btn-primary" : "btn-ghost"}`}
-              >
-                {opt}h
-              </a>
-            );
-          })}
-        </div>
-
+        {renderHeader()}
         <Card className="mt-6 flex flex-col items-center justify-center py-12 text-center">
           <div className="mb-2 text-5xl">🌱</div>
           <div className="font-medium">Belum ada uptime checks</div>
@@ -113,23 +119,7 @@ export default async function Page({
 
   return (
     <Shell authed={authed}>
-      <H1>Dashboard</H1>
-      <Subtle className="mt-1">Ringkasan uptime {hours} jam terakhir.</Subtle>
-
-      <div className="mt-4 flex gap-2">
-        {[6, 12, 24].map((opt) => {
-          const active = hours === opt;
-          return (
-            <a
-              key={opt}
-              href={`/?h=${opt}`}
-              className={`btn ${active ? "btn-primary" : "btn-ghost"}`}
-            >
-              {opt}h
-            </a>
-          );
-        })}
-      </div>
+      {renderHeader()}
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>

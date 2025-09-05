@@ -1,12 +1,15 @@
 import { Shell } from "@/components/shell";
 import { H1, Subtle, Card } from "@/components/ui";
 import type { Metadata } from "next";
+import { getAuthed } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Privacy — Deauport" };
 
 export default async function PrivacyPage() {
+  const authed = await getAuthed();
+
   return (
-    <Shell>
+    <Shell authed={authed}>
       <H1>Privacy</H1>
       <Subtle className="mt-1">
         Ringkasan kebijakan privasi untuk penggunaan dashboard & services.
@@ -17,17 +20,13 @@ export default async function PrivacyPage() {
           <div className="text-sm font-medium">Data yang Diproses</div>
           <ul className="mt-2 list-inside list-disc text-sm text-subtle">
             <li>
-              <span className="font-medium">Uptime checks</span>: menyimpan nama,
-              URL target, interval, status terakhir, dan metrik agregat (mis. rata-rata
-              latency). Log status disimpan terbatas untuk menampilkan grafik.
+              <span className="font-medium">Uptime checks</span>: Menyimpan nama, URL target, interval, dan metrik performa. Data ini ditampilkan di dashboard publik.
             </li>
             <li>
-              <span className="font-medium">Shortlinks</span>: menyimpan slug, target
-              URL, status (enabled), serta hit counter non-personal.
+              <span className="font-medium">Shortlinks</span>: Menyimpan slug, URL target, dan jumlah klik (*hit counter*). Data ini juga bersifat publik.
             </li>
             <li>
-              <span className="font-medium">Akun</span>: hanya kredensial minimal
-              untuk login single-user (tanpa multi-profil).
+              <span className="font-medium">Akun Admin</span>: Kredensial login hanya digunakan untuk satu akun admin yang dapat mengakses halaman "Manage" untuk mengelola data.
             </li>
           </ul>
         </Card>
@@ -35,33 +34,23 @@ export default async function PrivacyPage() {
         <Card>
           <div className="text-sm font-medium">Cookies & Sessions</div>
           <p className="mt-2 text-sm text-subtle">
-            Session cookie dipakai untuk autentikasi. Masa berlaku default 7 hari,
-            dan 30 hari jika “Remember me” diaktifkan. Tidak ada tracking pihak ketiga.
+            Session cookie hanya digunakan untuk proses autentikasi saat masuk ke halaman "Manage" yang bersifat privat. Halaman dashboard publik tidak menggunakan cookie autentikasi.
           </p>
         </Card>
 
         <Card>
-          <div className="text-sm font-medium">Retensi & Kontrol</div>
+          <div className="text-sm font-medium">Retensi & Kontrol Data</div>
           <ul className="mt-2 list-inside list-disc text-sm text-subtle">
-            <li>Log uptime disimpan secukupnya untuk grafik ringkas dan dapat dipangkas berkala.</li>
-            <li>Item dapat dihapus sewaktu-waktu melalui halaman Manage.</li>
-            <li>Konfigurasi & environment tetap berada di infrastruktur milik pengguna.</li>
+            <li>Log uptime disimpan secukupnya untuk keperluan grafik dan dapat dipangkas secara berkala.</li>
+            <li>Anda sebagai admin dapat menambah atau menghapus data kapan saja melalui halaman "Manage" yang privat.</li>
+            <li>Konfigurasi dan environment tetap berada di dalam infrastruktur milik pengguna.</li>
           </ul>
         </Card>
 
         <Card>
           <div className="text-sm font-medium">Keamanan</div>
           <p className="mt-2 text-sm text-subtle">
-            Endpoint dilindungi API key & rate limiting. Password tidak pernah disimpan
-            dalam bentuk plaintext. Pastikan menyebarkan aplikasi ini melalui koneksi HTTPS.
-          </p>
-        </Card>
-
-        <Card>
-          <div className="text-sm font-medium">Perubahan</div>
-          <p className="mt-2 text-sm text-subtle">
-            Kebijakan ini dapat diperbarui mengikuti perubahan fitur. Versi terbaru akan
-            tersedia di halaman ini.
+            Halaman dashboard bersifat publik dan read-only. Akses untuk mengubah data (menambah, mengubah, menghapus) di halaman "Manage" dilindungi oleh satu password admin. Pastikan menyebarkan aplikasi ini melalui koneksi HTTPS.
           </p>
         </Card>
       </div>
