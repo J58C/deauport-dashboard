@@ -24,23 +24,45 @@ export function Sparkline({
   });
 
   let d = "";
-  let started = false;
+  let dArea = "";
+  let startedLine = false;
+  let startedArea = false;
+  let firstPointInSegment: { x: number; y: number } | null = null;
+  let lastPointInSegment: { x: number; y: number } | null = null;
+
   for (const p of path) {
-    if (p.y == null) { started = false; continue; }
-    if (!started) { d += `M ${p.x.toFixed(1)} ${p.y.toFixed(1)} `; started = true; }
-    else { d += `L ${p.x.toFixed(1)} ${p.y.toFixed(1)} `; }
+    if (p.y == null) {
+      if (startedArea && firstPointInSegment && lastPointInSegment) {
+        dArea += `L ${lastPointInSegment.x.toFixed(1)} ${height - 1} L ${firstPointInSegment.x.toFixed(1)} ${height - 1} Z `;
+      }
+      startedLine = false;
+      startedArea = false;
+      firstPointInSegment = null;
+      lastPointInSegment = null;
+      continue;
+    }
+
+    if (!startedLine) {
+      d += `M ${p.x.toFixed(1)} ${p.y.toFixed(1)} `;
+      startedLine = true;
+    } else {
+      d += `L ${p.x.toFixed(1)} ${p.y.toFixed(1)} `;
+    }
+
+    if (!startedArea) {
+      dArea += `M ${p.x.toFixed(1)} ${p.y.toFixed(1)} `;
+      startedArea = true;
+      firstPointInSegment = { x: p.x, y: p.y };
+    } else {
+      dArea += `L ${p.x.toFixed(1)} ${p.y.toFixed(1)} `;
+    }
+    lastPointInSegment = { x: p.x, y: p.y };
+  }
+  
+  if (startedArea && firstPointInSegment && lastPointInSegment) {
+    dArea += `L ${lastPointInSegment.x.toFixed(1)} ${height - 1} L ${firstPointInSegment.x.toFixed(1)} ${height - 1} Z`;
   }
 
-  let dArea = "";
-  started = false;
-  for (const p of path) {
-    if (p.y == null) { started = false; continue; }
-    if (!started) { dArea += `M ${p.x.toFixed(1)} ${p.y.toFixed(1)} `; started = true; }
-    else { dArea += `L ${p.x.toFixed(1)} ${p.y.toFixed(1)} `; }
-  }
-  if (started) {
-    dArea += `L ${path[path.length - 1].x.toFixed(1)} ${height - 1} L ${path.find(p=>p.y!=null)?.x.toFixed(1)} ${height - 1} Z`;
-  }
 
   return (
     <svg viewBox={`0 0 ${w} ${height}`} className={`block ${className}`} width={w} height={height}>

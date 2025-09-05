@@ -19,6 +19,30 @@ async function getJSON<T>(path: string) {
   return res.json() as Promise<T>;
 }
 
+function prepareSparklineData(logs: Log[], intervalSec: number): (number | null)[] {
+  if (logs.length < 2) {
+    return logs.map(l => l.latencyMs ?? null).reverse();
+  }
+
+  const sortedLogs = [...logs].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  
+  const points: (number | null)[] = [];
+  const gapThreshold = intervalSec * 1000 * 3;
+
+  for (let i = 0; i < sortedLogs.length; i++) {
+    points.push(sortedLogs[i].latencyMs ?? null);
+
+    if (i < sortedLogs.length - 1) {
+      const time1 = new Date(sortedLogs[i].createdAt).getTime();
+      const time2 = new Date(sortedLogs[i+1].createdAt).getTime();
+      if (time2 - time1 > gapThreshold) {
+        points.push(null);
+      }
+    }
+  }
+  return points;
+}
+
 export default async function Page({
   params,
   searchParams,
@@ -36,7 +60,7 @@ export default async function Page({
   if (!item) return notFound();
 
   const logs = await getJSON<Log[]>(`/api/uptime/checks/${id}/logs`);
-  const series = [...logs].reverse().map((l) => l.latencyMs ?? null); // lama -> baru
+  const series = prepareSparklineData(logs, item.intervalSec);
 
   const st = item.last?.status ?? null;
   const colorClass =

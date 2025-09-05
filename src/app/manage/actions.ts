@@ -94,3 +94,37 @@ export async function deleteShortlinkAction(id: string) {
     method: "DELETE",
   });
 }
+
+export async function triggerRecapAction() {
+  return reqJSON(`/api/recap/trigger`, {
+    method: "POST",
+  });
+}
+
+export async function triggerManualBackupAction() {
+  return reqJSON(`/api/recap/manual-backup`, {
+    method: "POST",
+  });
+}
+
+export async function importDataAction(formData: FormData) {
+  const key = getKey();
+  const file = formData.get("file");
+
+  if (!file) {
+    throw new Error("No file provided.");
+  }
+
+  const res = await fetch(`${BASE}/api/import`, {
+    method: "POST",
+    headers: { "x-api-key": key },
+    body: formData,
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`${res.status} ${res.statusText} – ${body}`);
+  }
+  return res.json();
+}

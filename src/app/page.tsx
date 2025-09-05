@@ -34,6 +34,31 @@ async function fetchJSON<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+function prepareSparklineData(logs: LogItem[], intervalSec: number): (number | null)[] {
+  if (logs.length < 2) {
+    return logs.map(l => l.latencyMs ?? null).reverse();
+  }
+
+  const sortedLogs = [...logs].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  
+  const points: (number | null)[] = [];
+  const gapThreshold = intervalSec * 1000 * 3;
+
+  for (let i = 0; i < sortedLogs.length; i++) {
+    points.push(sortedLogs[i].latencyMs ?? null);
+
+    if (i < sortedLogs.length - 1) {
+      const time1 = new Date(sortedLogs[i].createdAt).getTime();
+      const time2 = new Date(sortedLogs[i+1].createdAt).getTime();
+      if (time2 - time1 > gapThreshold) {
+        points.push(null);
+      }
+    }
+  }
+  return points;
+}
+
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -64,11 +89,7 @@ export default async function Page({
         {[6, 12, 24].map((opt) => {
           const active = hours === opt;
           return (
-            <a
-              key={opt}
-              href={`/?h=${opt}`}
-              className={`btn ${active ? "btn-primary" : "btn-ghost"}`}
-            >
+            <a key={opt} href={`/?h=${opt}`} className={`btn ${active ? "btn-primary" : "btn-ghost"}`}>
               {opt}h
             </a>
           );
@@ -147,7 +168,7 @@ export default async function Page({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {featured.map((c, i) => {
             const logs = logsPerCheck[i]?.slice(0, 30) ?? [];
-            const series = [...logs].reverse().map((l) => l.latencyMs ?? null);
+            const series = prepareSparklineData(logs, c.intervalSec);
 
             const st = c.last?.status ?? null;
             const colorClass =
