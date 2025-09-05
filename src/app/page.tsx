@@ -1,103 +1,248 @@
-import Image from "next/image";
+import { Shell } from "@/components/shell";
+import { getAuthed } from "@/lib/session";
+import { Card, H1, Subtle, StatusBadge } from "@/components/ui";
+import { Sparkline } from "@/components/sparkline";
 
-export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+type SummaryItem = {
+  id: string;
+  name: string;
+  targetUrl: string;
+  enabled: boolean;
+  intervalSec: number;
+  last: { status: number | null; latencyMs: number | null; error: string | null; at: string } | null;
+  metrics24h: { uptimePct: number | null; avgLatencyMs: number | null; samples: number };
+};
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+type Overview = {
+  totalChecks: number;
+  healthy: number;
+  degraded: number;
+  down: number;
+  avgLatencyMs: number | null;
+};
+
+type LogItem = { id: string; status: number | null; latencyMs: number | null; createdAt: string };
+
+const BASE = process.env.NEXT_PUBLIC_API_BASE!;
+
+async function fetchJSON<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, { ...init, cache: "no-store" });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`GET ${path} ${res.status}: ${body}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export const metadata = { title: "Deauport — Dashboard" };
+
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ h?: string }>;
+}) {
+  const authed = await getAuthed();
+  const { h } = await searchParams;
+  const hoursRaw = Number(h ?? 24);
+  const hours = [6, 12, 24].includes(hoursRaw) ? hoursRaw : 24;
+
+  const [overview, summary] = await Promise.all([
+    fetchJSON<Overview>(`/api/uptime/overview?hours=${hours}`),
+    fetchJSON<SummaryItem[]>(`/api/uptime/summary?hours=${hours}`),
+  ]);
+
+  if (!summary || summary.length === 0) {
+    return (
+      <Shell authed={authed}>
+        <H1>Dashboard</H1>
+        <Subtle className="mt-1">Ringkasan uptime {hours} jam terakhir.</Subtle>
+
+        <div className="mt-4 flex gap-2">
+          {[6, 12, 24].map((opt) => {
+            const active = hours === opt;
+            return (
+              <a
+                key={opt}
+                href={`/?h=${opt}`}
+                className={`btn ${active ? "btn-primary" : "btn-ghost"}`}
+              >
+                {opt}h
+              </a>
+            );
+          })}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        <Card className="mt-6 flex flex-col items-center justify-center py-12 text-center">
+          <div className="mb-2 text-5xl">🌱</div>
+          <div className="font-medium">Belum ada uptime checks</div>
+          <p className="mt-1 text-sm text-muted">
+            Tambahkan check pertama di tab <span className="font-medium">Manage</span>.
+          </p>
+        </Card>
+      </Shell>
+    );
+  }
+
+  const featured = [...summary]
+    .sort((a, b) => (b.metrics24h.samples ?? 0) - (a.metrics24h.samples ?? 0))
+    .slice(0, 6);
+
+  const logsPerCheck = await Promise.all(
+    featured.map((c) => fetchJSON<LogItem[]>(`/api/uptime/checks/${c.id}/logs`))
+  );
+  const downEvents = logsPerCheck.flat().filter((l) => l.status == null || l.status >= 500).length;
+
+  const uptimeValues = summary
+    .map((s) => s.metrics24h.uptimePct)
+    .filter((v): v is number => v != null);
+  const avgUptimePct = uptimeValues.length
+    ? Math.round((uptimeValues.reduce((a, b) => a + b, 0) / uptimeValues.length) * 10) / 10
+    : null;
+
+  const latencyValues = summary
+    .map((s) => s.metrics24h.avgLatencyMs)
+    .filter((v): v is number => v != null);
+  const avgLatency = latencyValues.length
+    ? Math.round(latencyValues.reduce((a, b) => a + b, 0) / latencyValues.length)
+    : null;
+
+  const isOdd = featured.length % 2 === 1;
+
+  return (
+    <Shell authed={authed}>
+      <H1>Dashboard</H1>
+      <Subtle className="mt-1">Ringkasan uptime {hours} jam terakhir.</Subtle>
+
+      <div className="mt-4 flex gap-2">
+        {[6, 12, 24].map((opt) => {
+          const active = hours === opt;
+          return (
+            <a
+              key={opt}
+              href={`/?h=${opt}`}
+              className={`btn ${active ? "btn-primary" : "btn-ghost"}`}
+            >
+              {opt}h
+            </a>
+          );
+        })}
+      </div>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <div className="text-muted text-sm">Total Checks</div>
+          <div className="mt-1 text-2xl font-semibold">{overview.totalChecks}</div>
+        </Card>
+        <Card>
+          <div className="text-muted text-sm">Avg Uptime ({hours}h)</div>
+          <div className="mt-1 text-2xl font-semibold">{avgUptimePct ?? "—"}%</div>
+          <Subtle>Healthy: {overview.healthy} / {overview.totalChecks}</Subtle>
+        </Card>
+        <Card>
+          <div className="text-muted text-sm">Avg Latency ({hours}h)</div>
+          <div className="mt-1 text-2xl font-semibold">{avgLatency ?? "—"} ms</div>
+          <Subtle>Degraded/Down: {overview.degraded}/{overview.down}</Subtle>
+        </Card>
+        <Card>
+          <div className="text-muted text-sm">Down Events (sampled)</div>
+          <div className="mt-1 text-2xl font-semibold">{downEvents}</div>
+          <Subtle>Dari {featured.length} checks</Subtle>
+        </Card>
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_420px]">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {featured.map((c, i) => {
+            const logs = logsPerCheck[i]?.slice(0, 30) ?? [];
+            const series = [...logs].reverse().map((l) => l.latencyMs ?? null);
+
+            const st = c.last?.status ?? null;
+            const colorClass =
+              st == null
+                ? "text-[var(--danger)]"
+                : st >= 200 && st < 400
+                ? "text-[var(--primary)]"
+                : st >= 400 && st < 500
+                ? "text-[var(--warning)]"
+                : "text-[var(--danger)]";
+
+            return (
+              <Card
+                key={c.id}
+                className={`h-[190px] ${isOdd && i === 0 ? "sm:col-span-2" : ""}`}
+              >
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="truncate font-medium">{c.name}</div>
+                    <a
+                      href={c.targetUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="truncate text-xs text-subtle hover:underline"
+                      title={c.targetUrl}
+                    >
+                      {c.targetUrl}
+                    </a>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 text-sm">
+                    <StatusBadge code={st} />
+                    <div className="text-xs text-subtle">
+                      {c.metrics24h.uptimePct ?? "—"}% up · {c.metrics24h.avgLatencyMs ?? "—"} ms
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-neutral-300">
+                  <Sparkline points={series} className={colorClass} height={64} />
+                  <div className="mt-2 flex items-center justify-between text-xs text-subtle">
+                    <span>older</span>
+                    <span>newer</span>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+
+        <div className="flex flex-col">
+          <Card className="flex min-h-full flex-col">
+            <div className="mb-3 text-sm font-medium text-neutral-300">Latest Status</div>
+
+            <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-[var(--border)] bg-[var(--surface-2)]/40">
+              <div className="divide-y divide-[var(--border)]">
+                {summary.map((c) => (
+                  <div key={c.id} className="flex items-center gap-3 px-3 py-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate">{c.name}</div>
+                      <a
+                        href={c.targetUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="truncate text-xs text-subtle hover:underline"
+                        title={c.targetUrl}
+                      >
+                        {c.targetUrl}
+                      </a>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <StatusBadge code={c.last?.status ?? null} />
+                      <div className="text-right">
+                        <div>{c.metrics24h.uptimePct ?? "—"}% up</div>
+                        <div className="text-xs text-subtle">
+                          {c.metrics24h.avgLatencyMs ?? "—"} ms
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+    </Shell>
   );
 }
