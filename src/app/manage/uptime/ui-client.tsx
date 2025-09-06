@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { Skeleton } from "@/components/skeleton";
 import { useToast } from "@/components/toast";
 import { useConfirm } from "@/components/confirm";
@@ -39,7 +39,7 @@ export function UptimeClient() {
     }
   }, [apiBase]);
 
-  async function load() {
+  const load = useCallback(async () => {
     if (!apiBase) return;
     setLoading(true);
     setError("");
@@ -47,20 +47,24 @@ export function UptimeClient() {
       const res = await fetch(`${apiBase}/api/uptime/checks`, { cache: "no-store" });
       if (!res.ok) throw new Error(`GET /uptime/checks -> ${res.status}`);
       setList(await res.json());
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to fetch");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to fetch";
+      setError(message);
       setList([]);
     } finally {
       setLoading(false);
     }
-  }
-  useEffect(() => { load(); }, [apiBase]);
+  }, [apiBase]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   useEffect(() => {
     function onReload() { load(); }
     window.addEventListener("reload-uptime", onReload);
     return () => window.removeEventListener("reload-uptime", onReload);
-  }, []);
+  }, [load]);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -81,8 +85,9 @@ export function UptimeClient() {
       await toggleCheckAction(id, enabled);
       toast(enabled ? "Enabled" : "Disabled");
       await load();
-    } catch (e: any) {
-      toast(e?.message ?? "Failed to update check", "error");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to update check";
+      toast(message, "error");
     }
   }
   async function onDelete(id: string, name: string) {
@@ -97,8 +102,9 @@ export function UptimeClient() {
       await deleteCheckAction(id);
       toast("Check deleted");
       await load();
-    } catch (e: any) {
-      toast(e?.message ?? "Failed to delete check", "error");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to delete check";
+      toast(message, "error");
     }
   }
 

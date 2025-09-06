@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card } from "@/components/ui";
 import { Skeleton } from "@/components/skeleton";
 import { useToast } from "@/components/toast";
@@ -50,7 +50,7 @@ export function ManageClient() {
     }
   }, [apiBase]);
 
-  async function loadAll() {
+  const loadAll = useCallback(async () => {
     if (!apiBase) return;
     setLoading(true);
     setError("");
@@ -67,15 +67,17 @@ export function ManageClient() {
       ]);
       setChecks(c);
       setShorts(s);
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to fetch");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to fetch";
+      setError(message);
       setChecks([]);
       setShorts([]);
     } finally {
       setLoading(false);
     }
-  }
-  useEffect(() => { loadAll(); }, [apiBase]);
+  }, [apiBase]);
+
+  useEffect(() => { loadAll(); }, [loadAll]);
 
   async function createCheck(form: FormData) {
     const name = String(form.get("name") ?? "").trim();
@@ -85,8 +87,9 @@ export function ManageClient() {
       await createCheckAction({ name, targetUrl, intervalSec });
       toast("Uptime check created");
       await loadAll();
-    } catch (e: any) {
-      toast(e?.message ?? "Failed to create check", "error");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to create check";
+      toast(message, "error");
     }
   }
 
@@ -95,8 +98,9 @@ export function ManageClient() {
       await toggleCheckAction(id, enabled);
       toast(enabled ? "Enabled" : "Disabled");
       await loadAll();
-    } catch (e: any) {
-      toast(e?.message ?? "Failed to update check", "error");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to update check";
+      toast(message, "error");
     }
   }
 
@@ -113,8 +117,9 @@ export function ManageClient() {
       await deleteCheckAction(id);
       toast("Check deleted");
       await loadAll();
-    } catch (e: any) {
-      toast(e?.message ?? "Failed to delete check", "error");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to delete check";
+      toast(message, "error");
     }
   }
 
@@ -125,8 +130,9 @@ export function ManageClient() {
       await createShortlinkAction({ slug, targetUrl });
       toast("Shortlink created");
       await loadAll();
-    } catch (e: any) {
-      toast(e?.message ?? "Failed to create shortlink", "error");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to create shortlink";
+      toast(message, "error");
     }
   }
 
@@ -135,8 +141,9 @@ export function ManageClient() {
       await toggleShortlinkAction(id, enabled);
       toast(enabled ? "Enabled" : "Disabled");
       await loadAll();
-    } catch (e: any) {
-      toast(e?.message ?? "Failed to update shortlink", "error");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to update shortlink";
+      toast(message, "error");
     }
   }
 
@@ -153,8 +160,9 @@ export function ManageClient() {
       await deleteShortlinkAction(id);
       toast("Shortlink deleted");
       await loadAll();
-    } catch (e: any) {
-      toast(e?.message ?? "Failed to delete shortlink", "error");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to delete shortlink";
+      toast(message, "error");
     }
   }
 

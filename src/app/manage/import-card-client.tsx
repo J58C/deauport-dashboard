@@ -49,8 +49,9 @@ export function ImportCard() {
         window.dispatchEvent(new CustomEvent("reload-shortlinks"));
       }, 500);
 
-    } catch (e: any) {
-      toast(e?.message ?? "Gagal mengimpor data.", "error");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Gagal mengimpor data.";
+      toast(message, "error");
     } finally {
       setLoading(false);
     }

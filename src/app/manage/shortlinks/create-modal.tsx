@@ -26,8 +26,9 @@ export function CreateShortModal({
       onClose();
       afterCreate?.();
       window.dispatchEvent(new CustomEvent("reload-shortlinks"));
-    } catch (e: any) {
-      toast(e?.message ?? "Failed to create shortlink", "error");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to create shortlink";
+      toast(message, "error");
     } finally {
       setLoading(false);
     }

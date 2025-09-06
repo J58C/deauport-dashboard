@@ -31,8 +31,12 @@ export default function LinkPage() {
         }
         const data: ShortLink = await res.json();
         setLink(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Terjadi error yang tidak diketahui.');
+        }
       }
     }
 

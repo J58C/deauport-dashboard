@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { Skeleton } from "@/components/skeleton";
 import { useToast } from "@/components/toast";
 import { useConfirm } from "@/components/confirm";
@@ -47,7 +47,7 @@ export function ShortlinksClient() {
     }
   }, [apiBase]);
 
-  async function load() {
+  const load = useCallback(async () => {
     if (!apiBase) return;
     setLoading(true);
     setError("");
@@ -55,19 +55,23 @@ export function ShortlinksClient() {
       const res = await fetch(`${apiBase}/api/shortlinks`, { cache: "no-store" });
       if (!res.ok) throw new Error(`GET /shortlinks -> ${res.status}`);
       setList(await res.json());
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to fetch");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to fetch";
+      setError(message);
       setList([]);
     } finally {
       setLoading(false);
     }
-  }
-  useEffect(() => { load(); }, [apiBase]);
+  }, [apiBase]);
 
   useEffect(() => {
-  function onReload() { load(); }
-  window.addEventListener("reload-shortlinks", onReload);
-  return () => window.removeEventListener("reload-shortlinks", onReload);
+    load();
+  }, [load]);
+
+  useEffect(() => {
+    function onReload() { load(); }
+    window.addEventListener("reload-shortlinks", onReload);
+    return () => window.removeEventListener("reload-shortlinks", onReload);
   }, [load]);
 
   const filtered = useMemo(() => {
@@ -89,8 +93,9 @@ export function ShortlinksClient() {
       await toggleShortlinkAction(id, enabled);
       toast(enabled ? "Enabled" : "Disabled");
       await load();
-    } catch (e: any) {
-      toast(e?.message ?? "Failed to update shortlink", "error");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to update shortlink";
+      toast(message, "error");
     }
   }
   async function onDelete(id: string, slug: string) {
@@ -105,8 +110,9 @@ export function ShortlinksClient() {
       await deleteShortlinkAction(id);
       toast("Shortlink deleted");
       await load();
-    } catch (e: any) {
-      toast(e?.message ?? "Failed to delete shortlink", "error");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to delete shortlink";
+      toast(message, "error");
     }
   }
 

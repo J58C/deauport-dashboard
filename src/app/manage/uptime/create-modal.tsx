@@ -27,8 +27,9 @@ export function CreateUptimeModal({
       onClose();
       afterCreate?.();
       window.dispatchEvent(new CustomEvent("reload-uptime"));
-    } catch (e: any) {
-      toast(e?.message ?? "Failed to create check", "error");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to create check";
+      toast(message, "error");
     } finally {
       setLoading(false);
     }
