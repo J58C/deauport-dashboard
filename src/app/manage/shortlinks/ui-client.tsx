@@ -32,22 +32,15 @@ export function ShortlinksClient() {
   const toast = useToast();
   const confirm = useConfirm();
 
-  const [baseOrigin, setBaseOrigin] = useState<string>("");
+  const [shortlinkBaseUrl, setShortlinkBaseUrl] = useState('');
+
   useEffect(() => {
-    const envBase = process.env.NEXT_PUBLIC_SHORT_BASE || "";
-    try {
-      if (envBase) {
-        const u = new URL(envBase);
-        setBaseOrigin(u.origin);
-      } else if (typeof window !== "undefined") {
-        setBaseOrigin(location.origin);
-      }
-    } catch {
-      if (typeof window !== "undefined") setBaseOrigin(location.origin);
-    }
+    const envBase = process.env.NEXT_PUBLIC_SHORT_BASE || window.location.origin;
+    setShortlinkBaseUrl(envBase.replace(/\/+$/, ''));
   }, []);
 
-  const [apiBase, setApiBase] = useState<string>(process.env.NEXT_PUBLIC_SHORT_BASE || "");
+
+  const [apiBase, setApiBase] = useState<string>(process.env.NEXT_PUBLIC_API_BASE || "");
   useEffect(() => {
     if (!apiBase && typeof window !== "undefined") {
       setApiBase(`${location.protocol}//${location.hostname}:4000`);
@@ -168,18 +161,20 @@ export function ShortlinksClient() {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {pageSlice.map((s) => {
-            const shortHref = `${baseOrigin.replace(/\/+$/, "")}/${s.slug}`;
+            const fullShortUrl = `${shortlinkBaseUrl}/${s.slug}`;
+            const displayUrl = fullShortUrl.replace(/^https?:\/\//, '');
+
             return (
               <div key={s.id} className="card flex h-full flex-col justify-between p-4">
                 <div>
                   <a
-                    href={shortHref}
+                    href={fullShortUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-medium hover:underline"
-                    title={shortHref}
+                    title={fullShortUrl}
                   >
-                    /{s.slug}
+                    {displayUrl}
                   </a>
                   <a
                     href={s.targetUrl}
