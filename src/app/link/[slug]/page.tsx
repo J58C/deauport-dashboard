@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { Card, H1, Subtle } from '@/components/ui';
 import { Shell } from '@/components/shell';
 import { Skeleton } from '@/components/skeleton';

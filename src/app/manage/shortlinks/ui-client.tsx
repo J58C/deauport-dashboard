@@ -65,10 +65,10 @@ export function ShortlinksClient() {
   useEffect(() => { load(); }, [apiBase]);
 
   useEffect(() => {
-    function onReload() { load(); }
-    window.addEventListener("reload-shortlinks", onReload);
-    return () => window.removeEventListener("reload-shortlinks", onReload);
-  }, []);
+  function onReload() { load(); }
+  window.addEventListener("reload-shortlinks", onReload);
+  return () => window.removeEventListener("reload-shortlinks", onReload);
+  }, [load]);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();

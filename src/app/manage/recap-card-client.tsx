@@ -25,8 +25,9 @@ export function RecapCard() {
     try {
       await triggerManualBackupAction();
       toast("Email backup telah berhasil dikirim!");
-    } catch (e: any) {
-      toast(e?.message ?? "Gagal mengirim backup.", "error");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Gagal mengirim backup.";
+      toast(message, "error");
     } finally {
       setLoading(false);
     }

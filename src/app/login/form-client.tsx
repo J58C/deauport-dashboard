@@ -14,8 +14,8 @@ export default function LoginForm({ errorMsg = "" }: { errorMsg?: string }) {
   }, []);
 
   function onKeydown(e: React.KeyboardEvent<HTMLInputElement>) {
-    const capsOn = (e as any).getModifierState?.("CapsLock");
-    if (typeof capsOn === "boolean") setCaps(capsOn);
+  const capsOn = e.getModifierState?.("CapsLock");
+  if (typeof capsOn === "boolean") setCaps(capsOn);
   }
 
   return (

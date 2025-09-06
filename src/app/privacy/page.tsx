@@ -26,7 +26,7 @@ export default async function PrivacyPage() {
               <span className="font-medium">Shortlinks</span>: Menyimpan slug, URL target, dan jumlah klik (*hit counter*). Data ini juga bersifat publik.
             </li>
             <li>
-              <span className="font-medium">Akun Admin</span>: Kredensial login hanya digunakan untuk satu akun admin yang dapat mengakses halaman "Manage" untuk mengelola data.
+              <span className="font-medium">Akun Admin</span>: Kredensial login hanya digunakan untuk satu akun admin yang dapat mengakses halaman &quot;Manage&quot; untuk mengelola data.
             </li>
           </ul>
         </Card>

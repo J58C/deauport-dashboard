@@ -47,13 +47,13 @@ export function ManageHeader({
         <div className="flex gap-2">
           {current === "uptime" ? (
             <>
-              <a href="/manage/uptime?new=1#add-uptime" className="btn">+ Uptime</a>
-              <a href="/manage/shortlinks?new=1#add-short" className="btn btn-ghost">+ Shortlink</a>
+              <Link href="/manage/uptime?new=1#add-uptime" className="btn">+ Uptime</Link>
+              <Link href="/manage/shortlinks?new=1#add-short" className="btn btn-ghost">+ Shortlink</Link>
             </>
           ) : (
             <>
-              <a href="/manage/uptime?new=1#add-uptime" className="btn btn-ghost">+ Uptime</a>
-              <a href="/manage/shortlinks?new=1#add-short" className="btn">+ Shortlink</a>
+              <Link href="/manage/uptime?new=1#add-uptime" className="btn btn-ghost">+ Uptime</Link>
+              <Link href="/manage/shortlinks?new=1#add-short" className="btn">+ Shortlink</Link>
             </>
           )}
         </div>
