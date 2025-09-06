@@ -34,7 +34,7 @@ export default async function PrivacyPage() {
         <Card>
           <div className="text-sm font-medium">Cookies & Sessions</div>
           <p className="mt-2 text-sm text-subtle">
-            Session cookie hanya digunakan untuk proses autentikasi saat masuk ke halaman "Manage" yang bersifat privat. Halaman dashboard publik tidak menggunakan cookie autentikasi.
+            Session cookie hanya digunakan untuk proses autentikasi saat masuk ke halaman &quot;Manage&quot; yang bersifat privat. Halaman dashboard publik tidak menggunakan cookie autentikasi.
           </p>
         </Card>
 
@@ -42,7 +42,7 @@ export default async function PrivacyPage() {
           <div className="text-sm font-medium">Retensi & Kontrol Data</div>
           <ul className="mt-2 list-inside list-disc text-sm text-subtle">
             <li>Log uptime disimpan secukupnya untuk keperluan grafik dan dapat dipangkas secara berkala.</li>
-            <li>Anda sebagai admin dapat menambah atau menghapus data kapan saja melalui halaman "Manage" yang privat.</li>
+            <li>Anda sebagai admin dapat menambah atau menghapus data kapan saja melalui halaman &quot;Manage&quot; yang privat.</li>
             <li>Konfigurasi dan environment tetap berada di dalam infrastruktur milik pengguna.</li>
           </ul>
         </Card>
@@ -50,7 +50,7 @@ export default async function PrivacyPage() {
         <Card>
           <div className="text-sm font-medium">Keamanan</div>
           <p className="mt-2 text-sm text-subtle">
-            Halaman dashboard bersifat publik dan read-only. Akses untuk mengubah data (menambah, mengubah, menghapus) di halaman "Manage" dilindungi oleh satu password admin. Pastikan menyebarkan aplikasi ini melalui koneksi HTTPS.
+            Halaman dashboard bersifat publik dan read-only. Akses untuk mengubah data (menambah, mengubah, menghapus) di halaman &quot;Manage&quot; dilindungi oleh satu password admin. Pastikan menyebarkan aplikasi ini melalui koneksi HTTPS.
           </p>
         </Card>
       </div>
